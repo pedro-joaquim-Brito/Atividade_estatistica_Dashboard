@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #ef4444;
+      --text: #e5e7eb;
+      --muted: #9ca3af
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0f172a, #020617);
+      color: var(--text);
+      font-family: 'Inter'
+    }
+
+    .container {
+      width: 94%;
+      margin: 20px auto;
+      padding-bottom: 40px
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      background: #020617;
+      border-bottom: 1px solid #1f2937;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)
+    }
+
+    .navbar-brand {
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text)
+    }
+
+    .navbar-links {
+      display: flex;
+      gap: 4px
+    }
+
+    .navbar-links a {
+      color: var(--muted);
+      padding: 8px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .navbar-links a:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05)
+    }
+
+    .navbar-links a.nav-active {
+      color: #fff;
+      background: rgba(239, 68, 68, 0.15);
+      font-weight: 600
+    }
+
+    .section {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out
+    }
+
+    .active {
+      display: block
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .section-title {
+      margin-top: 28px;
+      color: var(--accent);
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+      gap: 20px;
+      margin-top: 10px
+    }
+
+    .card {
+      background: var(--card);
+      padding: 20px 18px;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center
+    }
+
+    .card-title {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px
+    }
+
+    .card-value {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--text)
+    }
+
+    .card-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 4px
+    }
+
+    .chart-card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid #1f2937
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%
+    }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: var(--card);
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #1f2937
+    }
+
+    select,
+    button {
+      padding: 9px 14px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      color: white;
+      border-radius: 8px;
+      font-family: 'Inter';
+      outline: none;
+      transition: border-color 0.2s;
+      font-size: 0.88rem
+    }
+
+    select:focus {
+      border-color: var(--accent)
+    }
+
+    button {
+      background: var(--accent);
+      cursor: pointer;
+      font-weight: 600;
+      border: none;
+      transition: background 0.2s
+    }
+
+    button:hover {
+      background: #dc2626
+    }
+
+    canvas {
+      background: #020617;
+      border-radius: 8px;
+      width: 100% !important;
+      height: 100% !important
+    }
+
+    .table-box {
+      margin-top: 10px;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #1f2937;
+      overflow-x: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      padding: 8px 10px;
+      text-align: center;
+      border-bottom: 1px solid #1f2937;
+      font-size: 0.86rem
+    }
+
+    th {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px
+    }
+
+    .insight {
+      margin-top: 10px;
+      padding: 18px;
+      background: #020617;
+      border-left: 4px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      line-height: 1.7;
+      font-size: 0.92rem
+    }
+
+    .insight.blue {
+      border-left-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.07);
+      color: #bfdbfe
+    }
+
+    .insight.yellow {
+      border-left-color: #eab308;
+      background: rgba(234, 179, 8, 0.07);
+      color: #fef08a
+    }
+
+    .insight.red {
+      border-left-color: #ef4444;
+      background: rgba(239, 68, 68, 0.07);
+      color: #fecaca
+    }
+
+    .insight.purple {
+      border-left-color: #a855f7;
+      background: rgba(168, 85, 247, 0.07);
+      color: #e9d5ff
+    }
+
+    .empty-data {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--muted);
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px dashed #374151;
+      line-height: 2.2
+    }
+
+    /* ── Visão Geral ── */
+    .ov-hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 16px;
+      margin-bottom: 8px
+    }
+
+    .ov-card {
+      background: var(--card);
+      border: 1px solid #1f2937;
+      border-radius: 14px;
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .ov-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--al, #ef4444)
+    }
+
+    .ov-icon {
+      font-size: 1.5rem;
+      margin-bottom: 4px
+    }
+
+    .ov-label {
+      font-size: 0.73rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600
+    }
+
+    .ov-value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.1
+    }
+
+    .ov-desc {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: 0.79rem;
+      font-weight: 600;
+      border: 1px solid
+    }
+
+    .b-red {
+      background: rgba(239, 68, 68, 0.1);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.25)
+    }
+
+    .b-blue {
+      background: rgba(59, 130, 246, 0.1);
+      color: #93c5fd;
+      border-color: rgba(59, 130, 246, 0.25)
+    }
+
+    .b-green {
+      background: rgba(34, 197, 94, 0.1);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.25)
+    }
+
+    .b-yellow {
+      background: rgba(234, 179, 8, 0.1);
+      color: #fde047;
+      border-color: rgba(234, 179, 8, 0.25)
+    }
+
+    .b-purple {
+      background: rgba(168, 85, 247, 0.1);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.25)
+    }
+
+    /* Tipo pills - nomenclatura estatística */
+    .type-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.73rem;
+      font-weight: 600;
+      margin-right: 4px
+    }
+
+    .t-quant-disc {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.3)
+    }
+
+    .t-quant-cont {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.3)
+    }
+
+    .t-qual-nom {
+      background: rgba(168, 85, 247, 0.15);
+      color: #d8b4fe;
+      border: 1px solid rgba(168, 85, 247, 0.3)
+    }
+
+    .t-qual-ord {
+      background: rgba(234, 179, 8, 0.15);
+      color: #fde047;
+      border: 1px solid rgba(234, 179, 8, 0.3)
+    }
+
+    .source-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 16px;
+      border-radius: 9px;
+      font-size: 0.83rem;
+      font-weight: 600
+    }
+
+    .src-default {
+      background: rgba(234, 179, 8, 0.09);
+      color: #fde047;
+      border: 1px solid rgba(234, 179, 8, 0.22)
+    }
+
+    .src-upload {
+      background: rgba(34, 197, 94, 0.09);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.22)
+    }
+
+    /* Legenda customizada para calibre */
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+      color: var(--muted)
+    }
+
+    .chart-legend span {
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .leg-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0
+    }
+
+    /* ── Modal ── */
+    #alert-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(5px)
+    }
+
+    #alert-overlay.show {
+      display: flex
+    }
+
+    #alert-box {
+      position: relative;
+      max-width: 460px;
+      width: 90%;
+      padding: 36px 36px 28px;
+      border-radius: 18px;
+      text-align: center;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1)
+    }
+
+    #alert-box.alert-green {
+      background: linear-gradient(135deg, #166534, #15803d)
+    }
+
+    #alert-box.alert-yellow {
+      background: linear-gradient(135deg, #713f12, #a16207)
+    }
+
+    #alert-box.alert-red {
+      background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+      animation: pulseBox 2s infinite
+    }
+
+    #alert-box.alert-purple {
+      background: linear-gradient(135deg, #4a044e, #86198f);
+      animation: flashBox 0.7s infinite
+    }
+
+    #alert-close {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s
+    }
+
+    #alert-close:hover {
+      background: rgba(255, 255, 255, 0.3)
+    }
+
+    #alert-icon {
+      font-size: 2.8rem;
+      margin-bottom: 14px
+    }
+
+    #alert-title {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      line-height: 1.4
+    }
+
+    #alert-msg {
+      font-size: 0.86rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.6
+    }
+
+    @keyframes pulseBox {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7)
+      }
+
+      70% {
+        box-shadow: 0 0 0 22px rgba(239, 68, 68, 0)
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0)
+      }
+    }
+
+    @keyframes flashBox {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.8;
+        transform: scale(1.015)
+      }
+    }
+
+    /* Animação de entrada dos gráficos */
+    @keyframes chartFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+      }
+    }
+
+    .chart-card.chart-anim {
+      animation: chartFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both
+    }
+
+    .chart-card.chart-anim:nth-child(1) {
+      animation-delay: 0.05s
+    }
+
+    .chart-card.chart-anim:nth-child(2) {
+      animation-delay: 0.15s
+    }
+
+    .chart-card.chart-anim:nth-child(3) {
+      animation-delay: 0.25s
+    }
+
+    /* Legenda de variáveis */
+    .stat-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 0.78rem
+    }
+
+    .stat-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid
+    }
+
+    /* ── Responsividade ── */
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+      .navbar-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+      .charts-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .filters {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filters > div {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        width: 100%;
+      }
+      .filters select, .filters button, #upload {
+        width: 100% !important;
+        box-sizing: border-box;
+      }
+      .table-box {
+        margin-top: 15px;
+      }
+      .stat-legend {
+        flex-direction: column;
+      }
+      #alert-box {
+        padding: 24px 20px;
+        width: 90%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .grid, .ov-hero {
+        grid-template-columns: 1fr !important;
+      }
+      .card-value, .ov-value {
+        font-size: 1.4rem;
+      }
+      .container {
+        width: 95%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="alert-overlay">
+    <div id="alert-box">
+      <button id="alert-close" onclick="closeAlert()"><i class="fa-solid fa-xmark"></i></button>
+      <div id="alert-icon"></div>
+      <div id="alert-title"></div>
+      <div id="alert-msg"></div>
+    </div>
+  </div>
+
+  <div class="navbar">
+    <div class="navbar-brand"><i class="fa-solid fa-shield-halved" style="color:#ef4444"></i> Cyber Analytics</div>
+    <div class="navbar-links">
+      <a id="nav-home" onclick="showPage('home')"><i class="fa-solid fa-house"></i> Home</a>
+      <a id="nav-visao" onclick="showPage('visao')"><i class="fa-solid fa-eye"></i> Visão Geral</a>
+      <a id="nav-dashboard" onclick="showPage('dashboard')"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+      <a id="nav-tools" onclick="showPage('tools')"><i class="fa-solid fa-toolbox"></i> Ferramentas</a>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- HOME -->
+    <div id="home" class="section active">
+      <h2 style="margin-top:30px">Nova Análise</h2>
+      <p style="color:var(--muted)">Envie seu próprio arquivo para análise ou explore o dashboard com a base de dados
+        padrão.</p>
+      <button onclick="exportCSV()" style="background:#22c55e;color:#000;margin-bottom:20px"><i
+          class="fa-solid fa-download"></i> Baixar Planilha Base (CSV)</button>
+      <div style="background:var(--card);border:1px solid #1f2937;border-radius:12px;padding:20px;max-width:500px">
+        <p style="margin:0 0 10px;font-size:0.88rem;color:var(--muted)">Formatos aceitos: <strong
+            style="color:var(--text)">.xlsx</strong> ou <strong style="color:var(--text)">.csv</strong></p>
+        <input type="file" id="upload" accept=".csv,.xlsx" onchange="handleUpload(event)"
+          style="padding:9px 14px;background:#020617;border:1px solid #1f2937;color:white;border-radius:8px;font-family:'Inter';font-size:0.88rem;width:100%;box-sizing:border-box">
+        <p id="upload-status" style="margin-top:12px;font-size:0.84rem;color:var(--muted);min-height:20px"></p>
+      </div>
+    </div>
+
+    <!-- VISÃO GERAL -->
+    <div id="visao" class="section">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:8px">
+        <h2 style="margin:0;font-size:1.3rem">Visão Geral da Base de Dados</h2>
+        <div id="ov-source-tag"></div>
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-calculator"></i> Resumo Quantitativo</div>
+      <div class="ov-hero" id="ov-counters"></div>
+
+      <div class="section-title"><i class="fa-solid fa-tags"></i> Tipos de Ameaças &amp; Distribuição de Severidade
+      </div>
+      <div style="background:var(--card);border:1px solid #1f2937;border-radius:12px;padding:20px" id="ov-tipos"></div>
+
+      <div class="section-title"><i class="fa-solid fa-table-columns"></i> Variáveis Analisadas</div>
+
+      <!-- Legenda de nomenclatura estatística -->
+      <div class="stat-legend">
+        <div class="stat-legend-item"
+          style="background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.25);color:#93c5fd">
+          <span style="width:10px;height:10px;border-radius:2px;background:#3b82f6;flex-shrink:0"></span>
+          Quantitativo Discreto — valores inteiros contáveis
+        </div>
+        <div class="stat-legend-item"
+          style="background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.25);color:#86efac">
+          <span style="width:10px;height:10px;border-radius:2px;background:#22c55e;flex-shrink:0"></span>
+          Quantitativo Contínuo — valores numéricos em escala
+        </div>
+        <div class="stat-legend-item"
+          style="background:rgba(168,85,247,0.08);border-color:rgba(168,85,247,0.25);color:#d8b4fe">
+          <span style="width:10px;height:10px;border-radius:2px;background:#a855f7;flex-shrink:0"></span>
+          Qualitativo Nominal — categorias sem ordem
+        </div>
+        <div class="stat-legend-item"
+          style="background:rgba(234,179,8,0.08);border-color:rgba(234,179,8,0.25);color:#fde047">
+          <span style="width:10px;height:10px;border-radius:2px;background:#eab308;flex-shrink:0"></span>
+          Qualitativo Ordinal — categorias com ordem definida
+        </div>
+      </div>
+
+      <div class="table-box">
+        <table id="ov-vars"></table>
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-eye"></i> Pré-visualização (primeiros 5 registros)</div>
+      <div class="table-box">
+        <table id="ov-preview"></table>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="section">
+      <div class="section-title"><i class="fa-solid fa-filter"></i> Filtros de Análise</div>
+      <div class="filters">
+        <div style="display:flex;align-items:center;gap:8px">
+          <label for="filtroTipo" style="font-weight:600;color:var(--muted);font-size:0.88rem">Ameaça:</label>
+          <select id="filtroTipo">
+            <option value="" disabled selected>Selecione o tipo</option>
+            <option value="Todos">🛡️ Todas as Ameaças</option>
+            <option value="Phishing">🎣 Phishing</option>
+            <option value="DDoS">🌩️ DDoS</option>
+            <option value="Malware">🦠 Malware</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label for="filtroImpacto" style="font-weight:600;color:var(--muted);font-size:0.88rem">Severidade:</label>
+          <select id="filtroImpacto">
+            <option value="" disabled selected>Selecione a severidade</option>
+            <option value="Todos">📊 Qualquer Impacto</option>
+            <option value="Alto">🔴 Alto Risco</option>
+            <option value="Medio">🟡 Médio Risco</option>
+            <option value="Baixo">🟢 Baixo Risco</option>
+          </select>
+        </div>
+        <button onclick="exportCSV()"><i class="fa-solid fa-download"></i> Exportar (CSV)</button>
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-gauge"></i> Medidas</div>
+      <div class="grid" id="cards"></div>
+
+      <div class="section-title"><i class="fa-solid fa-chart-pie"></i> Painel Analítico</div>
+      <div class="charts-grid" id="chartsGrid">
+        <div class="chart-card chart-anim">
+          <div style="font-weight:600;margin-bottom:4px;font-size:0.92rem"><i class="fa-solid fa-timeline"></i> Trilha
+            de Incidentes Diários</div>
+          <p style="font-size:0.74rem;color:var(--muted);margin:0 0 12px">Intensidade das tentativas ao longo do tempo.
+          </p>
+          <div class="chart-container"><canvas id="linha"></canvas></div>
+        </div>
+        <div class="chart-card chart-anim">
+          <div style="font-weight:600;margin-bottom:4px;font-size:0.92rem"><i class="fa-solid fa-bug"></i> Vetores de
+            Ataque</div>
+          <p style="font-size:0.74rem;color:var(--muted);margin:0 0 12px">Quais ameaças atingiram mais a rede.</p>
+          <div class="chart-container"><canvas id="barras"></canvas></div>
+        </div>
+        <div class="chart-card chart-anim">
+          <div style="font-weight:600;margin-bottom:4px;font-size:0.92rem"><i class="fa-solid fa-layer-group"></i>
+            Calibre das Invasões — Distribuição de Impacto</div>
+          <p style="font-size:0.74rem;color:var(--muted);margin:0 0 6px">Frequência de dias por faixa de severidade
+            (escala 1–10). Cada cor representa um nível de risco distinto.</p>
+          <div class="chart-legend" id="histLegend">
+            <span><span class="leg-dot" style="background:#22c55e"></span>Baixo Impacto (1–3)</span>
+            <span><span class="leg-dot" style="background:#eab308"></span>Médio Impacto (4–6)</span>
+            <span><span class="leg-dot" style="background:#ef4444"></span>Alto Impacto (7–10)</span>
+          </div>
+          <div class="chart-container"><canvas id="hist"></canvas></div>
+        </div>
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-clipboard-list"></i> Top 5 Incidentes</div>
+      <div class="table-box">
+        <table id="tabela"></table>
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-microscope"></i> Interpretação</div>
+      <div class="insight" id="insights"></div>
+    </div>
+
+    <!-- FERRAMENTAS -->
+    <div id="tools" class="section">
+      <div class="section-title"><i class="fa-solid fa-toolbox"></i> Ferramentas de Análise Externa</div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+        <div class="card" style="align-items:flex-start;gap:10px">
+          <div style="color:#ef4444;font-size:1rem;font-weight:600">VirusTotal</div>
+          <p style="font-size:0.88rem;color:var(--muted);text-align:left;margin:0">Analisa arquivos, domínios, IPs e
+            URLs suspeitos para detectar malwares, utilizando mais de 70 mecanismos antivírus de forma simultânea.</p>
+          <a href="https://www.virustotal.com/" target="_blank" style="width:100%;margin-top:auto"><button
+              style="background:#3b82f6;width:100%">Acessar VirusTotal ↗</button></a>
+        </div>
+        <div class="card" style="align-items:flex-start;gap:10px">
+          <div style="color:#ef4444;font-size:1rem;font-weight:600">Open Source Malware</div>
+          <p style="font-size:0.88rem;color:var(--muted);text-align:left;margin:0">Repositório aberto voltado para
+            pesquisa cibernética. Contém amostras reais essenciais para aprendizado e mitigação de vulnerabilidades
+            emergentes.</p>
+          <a href="https://opensourcemalware.com/" target="_blank" style="width:100%;margin-top:auto"><button
+              style="background:#3b82f6;width:100%">Acessar Open Source Malware ↗</button></a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <script>
+    // ── DADOS PADRÃO ──
+    const defaultData = [
+      { dia: 1, a: 7, t: 'Malware', tr: 49, i: 7 }, { dia: 2, a: 4, t: 'Phishing', tr: 32, i: 8 },
+      { dia: 3, a: 10, t: 'DDoS', tr: 28, i: 4 }, { dia: 4, a: 7, t: 'Malware', tr: 53, i: 6 },
+      { dia: 5, a: 7, t: 'Phishing', tr: 53, i: 4 }, { dia: 6, a: 6, t: 'DDoS', tr: 47, i: 3 },
+      { dia: 7, a: 5, t: 'Phishing', tr: 50, i: 5 }, { dia: 8, a: 9, t: 'Malware', tr: 38, i: 6 },
+      { dia: 9, a: 10, t: 'Malware', tr: 49, i: 9 }, { dia: 10, a: 9, t: 'DDoS', tr: 47, i: 5 },
+      { dia: 11, a: 7, t: 'Phishing', tr: 34, i: 3 }, { dia: 12, a: 4, t: 'Phishing', tr: 52, i: 4 },
+      { dia: 13, a: 4, t: 'Malware', tr: 29, i: 8 }, { dia: 14, a: 6, t: 'DDoS', tr: 44, i: 9 },
+      { dia: 15, a: 8, t: 'Malware', tr: 27, i: 6 }, { dia: 16, a: 7, t: 'Phishing', tr: 45, i: 9 },
+      { dia: 17, a: 10, t: 'Malware', tr: 46, i: 9 }, { dia: 18, a: 4, t: 'Phishing', tr: 25, i: 6 },
+      { dia: 19, a: 8, t: 'Malware', tr: 52, i: 5 }, { dia: 20, a: 4, t: 'Malware', tr: 29, i: 6 },
+      { dia: 21, a: 10, t: 'DDoS', tr: 39, i: 6 }, { dia: 22, a: 8, t: 'Phishing', tr: 42, i: 4 },
+      { dia: 23, a: 7, t: 'Malware', tr: 46, i: 3 }, { dia: 24, a: 8, t: 'DDoS', tr: 50, i: 5 },
+      { dia: 25, a: 6, t: 'Phishing', tr: 26, i: 5 }, { dia: 26, a: 5, t: 'Phishing', tr: 44, i: 8 },
+      { dia: 27, a: 8, t: 'DDoS', tr: 45, i: 9 }, { dia: 28, a: 7, t: 'Phishing', tr: 32, i: 3 },
+      { dia: 29, a: 10, t: 'Malware', tr: 45, i: 9 }, { dia: 30, a: 7, t: 'Phishing', tr: 39, i: 9 }
+    ];
+
+    // Classificação estatística de cada coluna padrão
+    const defaultColMeta = [
+      { label: 'Dia', statType: 'quant-disc', statLabel: 'Quantitativo Discreto', desc: 'Identificador do dia monitorado' },
+      { label: 'Ataques', statType: 'quant-disc', statLabel: 'Quantitativo Discreto', desc: `Quantidade de tentativas de ataque — mín: ${Math.min(...defaultData.map(d => d.a))}, máx: ${Math.max(...defaultData.map(d => d.a))}` },
+      { label: 'Tipo', statType: 'qual-nom', statLabel: 'Qualitativo Nominal', desc: 'Vetor de ataque sem ordem hierárquica: Phishing, DDoS, Malware' },
+      { label: 'TempoResposta', statType: 'quant-cont', statLabel: 'Quantitativo Contínuo', desc: 'Tempo de resposta ao incidente (segundos) — escala contínua' },
+      { label: 'Impacto', statType: 'qual-ord', statLabel: 'Qualitativo Ordinal', desc: 'Severidade do ataque em escala ordinal 1–10 (1 = mínimo, 10 = crítico)' },
+    ];
+
+    let data = [...defaultData];
+    let colMeta = [...defaultColMeta];
+    let uploadedFileName = null;
+    let rawPreview = null;
+
+    // ── NAVEGAÇÃO ──
+    function showPage(p) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.navbar-links a').forEach(a => a.classList.remove('nav-active'));
+      document.getElementById(p).classList.add('active');
+      const nav = document.getElementById('nav-' + p);
+      if (nav) nav.classList.add('nav-active');
+      if (p !== 'dashboard') closeAlert();
+      if (p === 'visao') renderVisao();
+    }
+    function closeAlert() { document.getElementById('alert-overlay').classList.remove('show') }
+
+    // ── UPLOAD ──
+    function handleUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const st = document.getElementById('upload-status');
+      st.textContent = '⏳ Lendo arquivo...';
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        try {
+          const wb = XLSX.read(ev.target.result, { type: 'binary' });
+          const sh = wb.Sheets[wb.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(sh, { defval: '' });
+          if (!json.length) { st.textContent = '❌ Arquivo vazio ou inválido.'; return; }
+          uploadedFileName = file.name;
+          rawPreview = json.slice(0, 5);
+          const keys = Object.keys(json[0]);
+          const find = cands => keys.find(k => cands.some(c => k.toLowerCase().includes(c))) || null;
+          const kDia = find(['dia', 'day', 'data', 'date', 'id']);
+          const kA = find(['ataque', 'attack', 'qtd', 'count', 'total', 'vol']);
+          const kT = find(['tipo', 'type', 'threat', 'ameaça', 'categoria', 'cat']);
+          const kTR = find(['tempo', 'time', 'response', 'resposta', 'tr', 'latenc']);
+          const kI = find(['impacto', 'impact', 'severidade', 'severity', 'nivel', 'score']);
+          data = json.map((row, idx) => ({
+            dia: kDia ? (row[kDia] || idx + 1) : idx + 1,
+            a: kA ? Number(row[kA]) || 0 : 0,
+            t: kT ? String(row[kT]) : 'Desconhecido',
+            tr: kTR ? Number(row[kTR]) || 0 : 0,
+            i: kI ? Number(row[kI]) || 0 : 0,
+          }));
+          colMeta = keys.map(k => {
+            const samp = json.slice(0, 15).map(r => r[k]).filter(v => v !== '');
+            const isNum = samp.length > 0 && samp.every(v => !isNaN(Number(v)));
+            const nums = isNum ? samp.map(Number) : [];
+            // Heurística de classificação estatística
+            let statType, statLabel;
+            if (isNum) {
+              const isInt = nums.every(v => Number.isInteger(v));
+              statType = isInt ? 'quant-disc' : 'quant-cont';
+              statLabel = isInt ? 'Quantitativo Discreto' : 'Quantitativo Contínuo';
+            } else {
+              const cats = [...new Set(samp)];
+              const ordKeywords = ['baixo', 'medio', 'médio', 'alto', 'critico', 'crítico', 'low', 'medium', 'high', 'critical', 'leve', 'grave', 'moderado'];
+              const seemsOrd = cats.some(c => ordKeywords.includes(String(c).toLowerCase()));
+              statType = seemsOrd ? 'qual-ord' : 'qual-nom';
+              statLabel = seemsOrd ? 'Qualitativo Ordinal' : 'Qualitativo Nominal';
+            }
+            return {
+              label: k,
+              statType, statLabel,
+              desc: isNum
+                ? `Mín: ${Math.min(...nums)} · Máx: ${Math.max(...nums)} · Média: ${(nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(1)}`
+                : `Categorias: ${[...new Set(samp)].slice(0, 6).join(', ')}`
+            };
+          });
+          const tipos = [...new Set(data.map(d => d.t))];
+          const sel = document.getElementById('filtroTipo');
+          sel.innerHTML = '<option value="" disabled selected>Selecione o tipo</option><option value="Todos">🛡️ Todas as Ameaças</option>';
+          tipos.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+          document.getElementById('filtroTipo').value = '';
+          document.getElementById('filtroImpacto').value = '';
+          render();
+          st.innerHTML = `✅ <strong>${file.name}</strong> carregado — ${json.length} registros · ${keys.length} colunas`;
+        } catch (err) { st.textContent = '❌ Erro: ' + err.message; }
+      };
+      reader.readAsBinaryString(file);
+    }
+
+    // ── VISÃO GERAL ──
+    const badgeColors = ['b-red', 'b-blue', 'b-purple', 'b-yellow', 'b-green'];
+    const tipoIcons = { Phishing: '🎣', DDoS: '🌩️', Malware: '🦠' };
+
+    const pillClasses = {
+      'quant-disc': 't-quant-disc',
+      'quant-cont': 't-quant-cont',
+      'qual-nom': 't-qual-nom',
+      'qual-ord': 't-qual-ord'
+    };
+
+    function renderVisao() {
+      const n = data.length;
+      const tipos = [...new Set(data.map(d => d.t))];
+      const numCols = colMeta.filter(c => c.statType.startsWith('quant')).length;
+      const catCols = colMeta.filter(c => c.statType.startsWith('qual')).length;
+      const totalAtaques = data.reduce((s, d) => s + d.a, 0);
+      const alto = data.filter(d => d.i >= 7).length;
+      const medio = data.filter(d => d.i >= 4 && d.i < 7).length;
+      const baixo = data.filter(d => d.i < 4).length;
+
+      document.getElementById('ov-source-tag').innerHTML = uploadedFileName
+        ? `<span class="source-tag src-upload"><i class="fa-solid fa-file-arrow-up"></i> ${uploadedFileName}</span>`
+        : `<span class="source-tag src-default"><i class="fa-solid fa-database"></i> Base de dados padrão</span>`;
+
+      document.getElementById('ov-counters').innerHTML = `
+    <div class="ov-card" style="--al:#ef4444">
+      <div class="ov-icon">📋</div><div class="ov-label">Registros</div>
+      <div class="ov-value">${n}</div><div class="ov-desc">linhas analisadas</div>
+    </div>
+    <div class="ov-card" style="--al:#3b82f6">
+      <div class="ov-icon">📐</div><div class="ov-label">Variáveis</div>
+      <div class="ov-value">${colMeta.length}</div>
+      <div class="ov-desc">${numCols} quantitativas · ${catCols} qualitativa${catCols !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="ov-card" style="--al:#a855f7">
+      <div class="ov-icon">🎯</div><div class="ov-label">Tipos de Ameaça</div>
+      <div class="ov-value">${tipos.length}</div><div class="ov-desc">${tipos.join(' · ')}</div>
+    </div>
+    <div class="ov-card" style="--al:#22c55e">
+      <div class="ov-icon">⚔️</div><div class="ov-label">Total de Ataques</div>
+      <div class="ov-value">${totalAtaques}</div><div class="ov-desc">Média ${(totalAtaques / n).toFixed(1)}/dia</div>
+    </div>
+    <div class="ov-card" style="--al:#eab308">
+      <div class="ov-icon">📅</div><div class="ov-label">Período</div>
+      <div class="ov-value">${n} dias</div><div class="ov-desc">Dia ${data[0]?.dia} → Dia ${data[n - 1]?.dia}</div>
+    </div>`;
+
+      let tiposBadges = '<div class="badge-row">';
+      tipos.forEach((t, i) => {
+        const cnt = data.filter(d => d.t === t).length;
+        const pct = ((cnt / n) * 100).toFixed(1);
+        const icon = tipoIcons[t] || '🔹';
+        tiposBadges += `<span class="badge ${badgeColors[i % badgeColors.length]}">${icon} ${t} — ${cnt} ocorrências (${pct}%)</span>`;
+      });
+      tiposBadges += '</div>';
+      tiposBadges += `<div class="badge-row" style="margin-top:10px">
+    <span class="badge b-red">🔴 Alto Impacto — ${alto} dias (${((alto / n) * 100).toFixed(1)}%)</span>
+    <span class="badge b-yellow">🟡 Médio Impacto — ${medio} dias (${((medio / n) * 100).toFixed(1)}%)</span>
+    <span class="badge b-green">🟢 Baixo Impacto — ${baixo} dias (${((baixo / n) * 100).toFixed(1)}%)</span>
+  </div>`;
+      document.getElementById('ov-tipos').innerHTML = tiposBadges;
+
+      // Tabela de variáveis com nomenclatura estatística
+      let vHTML = `<tr>
+    <th style="text-align:left;padding-left:14px">Variável</th>
+    <th>Classificação Estatística</th>
+    <th>Subtipo</th>
+    <th style="text-align:left">Descrição / Valores</th>
+  </tr>`;
+      colMeta.forEach(c => {
+        const cls = pillClasses[c.statType] || 't-quant-disc';
+        const isQuant = c.statType.startsWith('quant');
+        const mainType = isQuant ? 'Quantitativo' : 'Qualitativo';
+        const mainColor = isQuant ? '#93c5fd' : '#d8b4fe';
+        const subPill = `<span class="type-pill ${cls}">${c.statLabel.split(' ')[1] || ''}</span>`;
+        vHTML += `<tr>
+      <td style="text-align:left;padding-left:14px;font-weight:600">${c.label}</td>
+      <td><span style="font-size:0.8rem;font-weight:600;color:${mainColor}">${mainType}</span></td>
+      <td>${subPill}</td>
+      <td style="text-align:left;color:var(--muted)">${c.desc}</td>
+    </tr>`;
+      });
+      document.getElementById('ov-vars').innerHTML = vHTML;
+
+      const previewSource = rawPreview || data.slice(0, 5).map(d => ({ Dia: d.dia, Ataques: d.a, Tipo: d.t, TempoResposta: d.tr, Impacto: d.i }));
+      const pKeys = Object.keys(previewSource[0] || {});
+      let pHTML = `<tr>${pKeys.map(k => `<th>${k}</th>`).join('')}</tr>`;
+      previewSource.forEach(row => { pHTML += `<tr>${pKeys.map(k => `<td>${row[k]}</td>`).join('')}</tr>`; });
+      document.getElementById('ov-preview').innerHTML = pHTML;
+    }
+
+    // ── DASHBOARD ──
+    function filtrar() {
+      return data.filter(d =>
+        (filtroTipo.value === 'Todos' || d.t === filtroTipo.value) &&
+        (filtroImpacto.value === 'Todos' ||
+          (filtroImpacto.value === 'Alto' && d.i >= 7) ||
+          (filtroImpacto.value === 'Medio' && d.i >= 4 && d.i <= 6) ||
+          (filtroImpacto.value === 'Baixo' && d.i <= 3)));
+    }
+    function filtrouSelecionado() { return filtroTipo.value !== '' && filtroImpacto.value !== '' }
+    function stats(arr) {
+      const v = arr.map(d => d.a).sort((a, b) => a - b), n = v.length || 1;
+      const m = v.reduce((a, b) => a + b, 0) / n;
+      return {
+        m, med: v[Math.floor(n / 2)], p10: v[Math.floor(n * 0.1)] || 0, p90: v[Math.floor(n * 0.9)] || 0,
+        sd: Math.sqrt(v.reduce((s, x) => s + (x - m) ** 2, 0) / n),
+        cv: m === 0 ? 0 : (Math.sqrt(v.reduce((s, x) => s + (x - m) ** 2, 0) / n) / m) * 100
+      };
+    }
+
+    let charts = {};
+    function render() {
+      const overlay = document.getElementById('alert-overlay'), box = document.getElementById('alert-box');
+      if (!filtrouSelecionado()) {
+        cards.innerHTML = "<div class='empty-data'><i class='fa-solid fa-filter fa-3x' style='margin-bottom:16px;opacity:0.35'></i><br>Selecione um <strong>tipo de ameaça</strong> e a <strong>severidade</strong> para visualizar os dados.</div>";
+        document.getElementById('chartsGrid').style.display = 'none';
+        tabela.innerHTML = ''; insights.className = 'insight'; insights.innerHTML = '';
+        overlay.classList.remove('show'); return;
+      }
+      const f = filtrar();
+      if (!f.length) {
+        cards.innerHTML = "<div class='empty-data'><i class='fa-solid fa-folder-open fa-3x' style='margin-bottom:16px;opacity:0.35'></i><br>Nenhum dado para os filtros selecionados.</div>";
+        document.getElementById('chartsGrid').style.display = 'none';
+        tabela.innerHTML = ''; insights.innerHTML = 'Sem dados.'; overlay.classList.remove('show'); return;
+      }
+
+      // Animar gráficos ao aparecer
+      const chartsGrid = document.getElementById('chartsGrid');
+      chartsGrid.style.display = 'grid';
+      chartsGrid.querySelectorAll('.chart-card').forEach(el => {
+        el.classList.remove('chart-anim');
+        void el.offsetWidth;
+        el.classList.add('chart-anim');
+      });
+
+      const s = stats(f);
+      cards.innerHTML = `
+    <div class='card'><div class='card-title'><i class="fa-solid fa-calculator"></i> Média</div><div class='card-value'>${s.m.toFixed(2)}</div><div class='card-sub'>ataques/dia</div></div>
+    <div class='card'><div class='card-title'><i class="fa-solid fa-map-pin"></i> Mediana</div><div class='card-value'>${s.med}</div><div class='card-sub'>valor central</div></div>
+    <div class='card'><div class='card-title'><i class="fa-solid fa-angle-down"></i> P10</div><div class='card-value'>${s.p10}</div><div class='card-sub'>limite inferior</div></div>
+    <div class='card'><div class='card-title'><i class="fa-solid fa-angle-up"></i> P90</div><div class='card-value'>${s.p90}</div><div class='card-sub'>limite superior</div></div>
+    <div class='card'><div class='card-title'><i class="fa-solid fa-chart-area"></i> Desvio</div><div class='card-value'>${s.sd.toFixed(2)}</div><div class='card-sub'>variação</div></div>
+    <div class='card'><div class='card-title'><i class="fa-solid fa-percentage"></i> C. Variação</div><div class='card-value'>${s.cv.toFixed(2)}%</div><div class='card-sub'>% relativa</div></div>`;
+
+      const labels = f.map(d => d.dia), valores = f.map(d => d.a);
+      Object.values(charts).forEach(c => c.destroy && c.destroy());
+
+      const animOpt = { duration: 700, easing: 'easeOutQuart' };
+      const baseOpt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, animation: animOpt };
+
+      // Gráfico 1: Linha
+      charts.l = new Chart(linha, { type: 'line', data: { labels, datasets: [{ data: valores, borderColor: '#ef4444', tension: 0.3, borderWidth: 2, fill: true, backgroundColor: 'rgba(239,68,68,0.06)' }] }, options: baseOpt });
+
+      // Gráfico 2: Barras por tipo
+      const tipos = [...new Set(f.map(d => d.t))];
+      charts.b = new Chart(barras, { type: 'bar', data: { labels: tipos, datasets: [{ data: tipos.map(t => f.filter(d => d.t === t).length), backgroundColor: '#ef4444', borderRadius: 6 }] }, options: baseOpt });
+
+      // Gráfico 3: Calibre das Invasões — histograma de impacto por faixa, cor por nível
+      const bins = [
+        { label: '1', min: 1, max: 1, color: '#22c55e' },
+        { label: '2', min: 2, max: 2, color: '#22c55e' },
+        { label: '3', min: 3, max: 3, color: '#22c55e' },
+        { label: '4', min: 4, max: 4, color: '#eab308' },
+        { label: '5', min: 5, max: 5, color: '#eab308' },
+        { label: '6', min: 6, max: 6, color: '#eab308' },
+        { label: '7', min: 7, max: 7, color: '#ef4444' },
+        { label: '8', min: 8, max: 8, color: '#ef4444' },
+        { label: '9', min: 9, max: 9, color: '#ef4444' },
+        { label: '10', min: 10, max: 10, color: '#ef4444' },
+      ];
+      const histCounts = bins.map(b => f.filter(d => d.i >= b.min && d.i <= b.max).length);
+      const histColors = bins.map(b => b.color);
+      charts.h = new Chart(hist, {
+        type: 'bar',
+        data: {
+          labels: bins.map(b => b.label),
+          datasets: [{
+            label: 'Dias',
+            data: histCounts,
+            backgroundColor: histColors,
+            borderRadius: 5,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: animOpt,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: ctx => `Impacto nível ${ctx[0].label}`,
+                label: ctx => {
+                  const lvl = parseInt(ctx.label);
+                  const zona = lvl <= 3 ? 'Baixo Risco' : lvl <= 6 ? 'Médio Risco' : 'Alto Risco';
+                  return `${ctx.raw} dia(s) — ${zona}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Nível de Impacto (1 = mínimo · 10 = crítico)', color: '#6b7280', font: { size: 11 } },
+              ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.04)' }
+            },
+            y: {
+              title: { display: true, text: 'Frequência (dias)', color: '#6b7280', font: { size: 11 } },
+              beginAtZero: true, ticks: { color: '#9ca3af', precision: 0 }, grid: { color: 'rgba(255,255,255,0.04)' }
+            }
+          }
+        }
+      });
+
+      // Top 5
+      const top = [...f].sort((a, b) => b.a - a.a).slice(0, 5);
+      let tHTML = `<tr><th>Dia</th><th>Ataques</th><th>Tipo</th><th>Tempo Resp.</th><th>Impacto</th></tr>`;
+      top.forEach(d => {
+        const imp = d.i >= 7 ? '<span style="color:#ef4444;font-weight:bold">🔴 Alto</span>' : (d.i >= 4 ? '<span style="color:#eab308">🟡 Médio</span>' : '<span style="color:#22c55e">🟢 Baixo</span>');
+        const tp = tipoIcons[d.t] ? `${tipoIcons[d.t]} ${d.t}` : d.t;
+        tHTML += `<tr><td>Dia ${d.dia}</td><td style="font-weight:bold">${d.a}</td><td>${tp}</td><td>${d.tr}s</td><td>${imp} (${d.i})</td></tr>`;
+      });
+      tabela.innerHTML = tHTML;
+
+      // Alerta e insight
+      let alertClass, alertTitle, alertIcon, insightClass, dicas;
+      if (s.m > 10) { alertClass = 'alert-purple'; alertIcon = '💀'; alertTitle = 'INVASÃO DETECTADA! Ação imediata necessária.'; dicas = 'Isole a rede afetada, acione a equipe de resposta a incidentes e analise os logs do Firewall.'; insightClass = 'purple'; }
+      else if (s.m > 8) { alertClass = 'alert-red'; alertIcon = '⚠️'; alertTitle = 'Muito Cuidado. Altos volumes de anomalias detectados.'; dicas = 'Eleve o monitoramento. Bloqueie IPs suspeitos temporariamente e revise as regras do IDS.'; insightClass = 'red'; }
+      else if (s.m > 6) { alertClass = 'alert-yellow'; alertIcon = '🔔'; alertTitle = 'Atenção. Crescimento de tráfego fora do comum.'; dicas = 'Estado de observação. Avalie se os picos decorrem de falsos positivos, varreduras ou atividades legítimas.'; insightClass = 'yellow'; }
+      else { alertClass = 'alert-green'; alertIcon = '✅'; alertTitle = 'Rede Segura! Nenhuma anomalia crítica detectada.'; dicas = 'Arquitetura dentro dos parâmetros esperados. Mantenha as defesas ativas e atualizadas.'; insightClass = 'blue'; }
+
+      insights.className = `insight ${insightClass}`;
+      insights.innerHTML = `<strong><i class="fa-solid fa-shield-halved"></i> Alerta Geral:</strong> ${alertTitle}<br><br>
+    <strong><i class="fa-solid fa-microscope"></i> Entendendo Este Cenário:</strong><br>
+    O desvio padrão de <strong>${s.sd.toFixed(2)}</strong> e o CV de <strong>${s.cv.toFixed(2)}%</strong> indicam variação ${s.sd < 2 ? 'baixa e tranquila' : 'alta e instável'}.<br><br>
+    — <strong>P10 (${s.p10} ataques):</strong> Limite inferior — ruído de fundo cotidiano.<br>
+    — <strong>P90 (${s.p90} ataques):</strong> Apenas 10% dos dias superou esse valor. P90 elevado indica picos graves.<br><br>
+    <strong><i class="fa-solid fa-lightbulb" style="color:#eab308"></i> Recomendação:</strong> ${dicas}`;
+
+      if (document.getElementById('dashboard').classList.contains('active')) {
+        box.className = alertClass;
+        document.getElementById('alert-icon').textContent = alertIcon;
+        document.getElementById('alert-title').textContent = alertTitle;
+        document.getElementById('alert-msg').textContent = dicas;
+        overlay.classList.add('show');
+      }
+    }
+
+    filtroTipo.onchange = render;
+    filtroImpacto.onchange = render;
+    render();
+
+    function exportCSV() {
+      let csv = 'Dia,Ataques,Tipo,TempoResposta,Impacto\n';
+      data.forEach(d => csv += `${d.dia},${d.a},${d.t},${d.tr},${d.i}\n`);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv]));
+      a.download = 'dados_cyber.csv'; a.click();
+    }
+
+    document.getElementById('nav-home').classList.add('nav-active');
+  </script>
+</body>
+
+</html>

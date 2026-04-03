@@ -632,7 +632,7 @@
       border: 1px solid
     }
 
-    @media (max-width: 768px) {
+    @media screen and (max-width: 768px) {
       .navbar {
         flex-direction: column;
         gap: 15px;
@@ -677,7 +677,7 @@
       }
     }
 
-    @media (max-width: 480px) {
+    @media screen and (max-width: 480px) {
 
       .grid,
       .ov-hero {
@@ -691,6 +691,55 @@
 
       .container {
         width: 95%
+      }
+    }
+
+    @media print {
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      html, body {
+        background-color: #0f172a !important;
+        color: #e5e7eb !important;
+        min-height: 100vh;
+      }
+      /* Fallback extremo para forçar fundo caso o navegador ignore o background-color */
+      body {
+        box-shadow: inset 0 0 0 1000vw #0f172a !important;
+      }
+      .navbar, .filters button, #upload {
+        display: none !important;
+      }
+      .container {
+        width: 100% !important;
+        min-width: 1000px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .card, .chart-card, .table-box {
+        break-inside: avoid;
+        background-color: #111827 !important;
+        border: 1px solid #374151 !important;
+        box-shadow: inset 0 0 0 1000vw #111827 !important; /* Força fundo do card escuro */
+      }
+      .table-box {
+        overflow: visible !important;
+      }
+      th {
+        color: #ef4444 !important;
+      }
+      /* Melhora a legenda ao imprimir */
+      .stat-legend-item {
+        border-color: #374151 !important;
+      }
+      /* Garante que os gráficos não cortem */
+      canvas {
+        max-width: 100% !important;
+      }
+      @page {
+        margin: 1cm;
       }
     }
   </style>
@@ -797,7 +846,7 @@
             <option value="Baixo">🟢 Baixo Risco</option>
           </select>
         </div>
-        <button onclick="exportXLSX()"><i class="fa-solid fa-download"></i> Exportar (XLSX)</button>
+        <button onclick="exportPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar Dashboard (PDF)</button>
       </div>
 
       <div class="section-title"><i class="fa-solid fa-gauge"></i> Medidas</div>
@@ -868,36 +917,36 @@
 
   <script>
     const defaultData = [
-      { dia: 1,  a: 7,  t: 'Malware',  tr: 49, i: 7 },
-      { dia: 2,  a: 4,  t: 'Phishing', tr: 32, i: 8 },
-      { dia: 3,  a: 10, t: 'DDoS',     tr: 28, i: 4 },
-      { dia: 4,  a: 7,  t: 'Malware',  tr: 53, i: 6 },
-      { dia: 5,  a: 7,  t: 'Phishing', tr: 53, i: 4 },
-      { dia: 6,  a: 6,  t: 'DDoS',     tr: 47, i: 3 },
-      { dia: 7,  a: 5,  t: 'Phishing', tr: 50, i: 5 },
-      { dia: 8,  a: 9,  t: 'Malware',  tr: 38, i: 6 },
-      { dia: 9,  a: 10, t: 'Malware',  tr: 49, i: 9 },
-      { dia: 10, a: 9,  t: 'DDoS',     tr: 47, i: 5 },
-      { dia: 11, a: 7,  t: 'Phishing', tr: 34, i: 3 },
-      { dia: 12, a: 4,  t: 'Phishing', tr: 52, i: 4 },
-      { dia: 13, a: 4,  t: 'Malware',  tr: 29, i: 8 },
-      { dia: 14, a: 6,  t: 'DDoS',     tr: 44, i: 9 },
-      { dia: 15, a: 8,  t: 'Malware',  tr: 27, i: 6 },
-      { dia: 16, a: 7,  t: 'Phishing', tr: 45, i: 9 },
-      { dia: 17, a: 10, t: 'Malware',  tr: 46, i: 9 },
-      { dia: 18, a: 4,  t: 'Phishing', tr: 25, i: 6 },
-      { dia: 19, a: 8,  t: 'Malware',  tr: 52, i: 5 },
-      { dia: 20, a: 4,  t: 'Malware',  tr: 29, i: 6 },
-      { dia: 21, a: 10, t: 'DDoS',     tr: 39, i: 6 },
-      { dia: 22, a: 8,  t: 'Phishing', tr: 42, i: 4 },
-      { dia: 23, a: 7,  t: 'Malware',  tr: 46, i: 3 },
-      { dia: 24, a: 8,  t: 'DDoS',     tr: 50, i: 5 },
-      { dia: 25, a: 6,  t: 'Phishing', tr: 26, i: 5 },
-      { dia: 26, a: 5,  t: 'Phishing', tr: 44, i: 8 },
-      { dia: 27, a: 8,  t: 'DDoS',     tr: 45, i: 9 },
-      { dia: 28, a: 7,  t: 'Phishing', tr: 32, i: 3 },
-      { dia: 29, a: 10, t: 'Malware',  tr: 45, i: 9 },
-      { dia: 30, a: 7,  t: 'Phishing', tr: 39, i: 9 }
+      { dia: 1, a: 7, t: 'Malware', tr: 49, i: 7 },
+      { dia: 2, a: 4, t: 'Phishing', tr: 32, i: 8 },
+      { dia: 3, a: 10, t: 'DDoS', tr: 28, i: 4 },
+      { dia: 4, a: 7, t: 'Malware', tr: 53, i: 6 },
+      { dia: 5, a: 7, t: 'Phishing', tr: 53, i: 4 },
+      { dia: 6, a: 6, t: 'DDoS', tr: 47, i: 3 },
+      { dia: 7, a: 5, t: 'Phishing', tr: 50, i: 5 },
+      { dia: 8, a: 9, t: 'Malware', tr: 38, i: 6 },
+      { dia: 9, a: 10, t: 'Malware', tr: 49, i: 9 },
+      { dia: 10, a: 9, t: 'DDoS', tr: 47, i: 5 },
+      { dia: 11, a: 7, t: 'Phishing', tr: 34, i: 3 },
+      { dia: 12, a: 4, t: 'Phishing', tr: 52, i: 4 },
+      { dia: 13, a: 4, t: 'Malware', tr: 29, i: 8 },
+      { dia: 14, a: 6, t: 'DDoS', tr: 44, i: 9 },
+      { dia: 15, a: 8, t: 'Malware', tr: 27, i: 6 },
+      { dia: 16, a: 7, t: 'Phishing', tr: 45, i: 9 },
+      { dia: 17, a: 10, t: 'Malware', tr: 46, i: 9 },
+      { dia: 18, a: 4, t: 'Phishing', tr: 25, i: 6 },
+      { dia: 19, a: 8, t: 'Malware', tr: 52, i: 5 },
+      { dia: 20, a: 4, t: 'Malware', tr: 29, i: 6 },
+      { dia: 21, a: 10, t: 'DDoS', tr: 39, i: 6 },
+      { dia: 22, a: 8, t: 'Phishing', tr: 42, i: 4 },
+      { dia: 23, a: 7, t: 'Malware', tr: 46, i: 3 },
+      { dia: 24, a: 8, t: 'DDoS', tr: 50, i: 5 },
+      { dia: 25, a: 6, t: 'Phishing', tr: 26, i: 5 },
+      { dia: 26, a: 5, t: 'Phishing', tr: 44, i: 8 },
+      { dia: 27, a: 8, t: 'DDoS', tr: 45, i: 9 },
+      { dia: 28, a: 7, t: 'Phishing', tr: 32, i: 3 },
+      { dia: 29, a: 10, t: 'Malware', tr: 45, i: 9 },
+      { dia: 30, a: 7, t: 'Phishing', tr: 39, i: 9 }
     ];
 
     const defaultColMeta = [
@@ -912,6 +961,26 @@
     let colMeta = [...defaultColMeta];
     let uploadedFileName = null;
     let rawPreview = null;
+
+    // ─── EXPORTAR PDF (Dashboard Completo) ───────────────────────────────────
+    function exportPDF() {
+      // Cria titulo baseado nos filtros atuais
+      const originalTitle = document.title;
+      const fp = document.getElementById('filtroTipo') ? document.getElementById('filtroTipo').value : '';
+      const fi = document.getElementById('filtroImpacto') ? document.getElementById('filtroImpacto').value : '';
+      
+      let nome = '';
+      if (fp && fp !== 'Todos') nome += fp;
+      if (fi && fi !== 'Todos') nome += (nome ? ' com perigo ' : 'Perigo ') + fi.toLowerCase();
+      
+      if (nome) document.title = nome;
+
+      // Usa a API nativa de impressão/Save as PDF do navegador
+      window.print();
+      
+      // Restaura o titulo logo apos acionar a janela de impressao
+      setTimeout(() => { document.title = originalTitle; }, 1000);
+    }
 
     function showPage(p) {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -1250,7 +1319,17 @@
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Dados Cyber');
 
-      XLSX.writeFile(wb, 'dados_cyber.xlsx');
+      // Nome dinâmico
+      const fp = document.getElementById('filtroTipo') ? document.getElementById('filtroTipo').value : '';
+      const fi = document.getElementById('filtroImpacto') ? document.getElementById('filtroImpacto').value : '';
+      
+      let nome = '';
+      if (fp && fp !== 'Todos') nome += fp;
+      if (fi && fi !== 'Todos') nome += (nome ? ' com perigo ' : 'perigo ') + fi.toLowerCase();
+      
+      const fileName = nome ? `${nome}.xlsx` : 'dados_cyber.xlsx';
+
+      XLSX.writeFile(wb, fileName);
     }
     // ─────────────────────────────────────────────────────────────────────────
 

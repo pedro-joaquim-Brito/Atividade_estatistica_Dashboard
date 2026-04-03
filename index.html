@@ -723,8 +723,8 @@
       <h2 style="margin-top:30px">Nova Análise</h2>
       <p style="color:var(--muted)">Envie seu próprio arquivo para análise ou explore o dashboard com a base de dados
         padrão.</p>
-      <button onclick="exportCSV()" style="background:#22c55e;color:#000;margin-bottom:20px"><i
-          class="fa-solid fa-download"></i> Baixar Planilha Base (CSV)</button>
+      <button onclick="exportXLSX()" style="background:#22c55e;color:#000;margin-bottom:20px"><i
+          class="fa-solid fa-download"></i> Baixar Planilha Base (XLSX)</button>
       <div style="background:var(--card);border:1px solid #1f2937;border-radius:12px;padding:20px;max-width:500px">
         <p style="margin:0 0 10px;font-size:0.88rem;color:var(--muted)">Formatos aceitos: <strong
             style="color:var(--text)">.xlsx</strong> ou <strong style="color:var(--text)">.csv</strong></p>
@@ -797,7 +797,7 @@
             <option value="Baixo">🟢 Baixo Risco</option>
           </select>
         </div>
-        <button onclick="exportCSV()"><i class="fa-solid fa-download"></i> Exportar (CSV)</button>
+        <button onclick="exportXLSX()"><i class="fa-solid fa-download"></i> Exportar (XLSX)</button>
       </div>
 
       <div class="section-title"><i class="fa-solid fa-gauge"></i> Medidas</div>
@@ -868,21 +868,36 @@
 
   <script>
     const defaultData = [
-      { dia: 1, a: 7, t: 'Malware', tr: 49, i: 7 }, { dia: 2, a: 4, t: 'Phishing', tr: 32, i: 8 },
-      { dia: 3, a: 10, t: 'DDoS', tr: 28, i: 4 }, { dia: 4, a: 7, t: 'Malware', tr: 53, i: 6 },
-      { dia: 5, a: 7, t: 'Phishing', tr: 53, i: 4 }, { dia: 6, a: 6, t: 'DDoS', tr: 47, i: 3 },
-      { dia: 7, a: 5, t: 'Phishing', tr: 50, i: 5 }, { dia: 8, a: 9, t: 'Malware', tr: 38, i: 6 },
-      { dia: 9, a: 10, t: 'Malware', tr: 49, i: 9 }, { dia: 10, a: 9, t: 'DDoS', tr: 47, i: 5 },
-      { dia: 11, a: 7, t: 'Phishing', tr: 34, i: 3 }, { dia: 12, a: 4, t: 'Phishing', tr: 52, i: 4 },
-      { dia: 13, a: 4, t: 'Malware', tr: 29, i: 8 }, { dia: 14, a: 6, t: 'DDoS', tr: 44, i: 9 },
-      { dia: 15, a: 8, t: 'Malware', tr: 27, i: 6 }, { dia: 16, a: 7, t: 'Phishing', tr: 45, i: 9 },
-      { dia: 17, a: 10, t: 'Malware', tr: 46, i: 9 }, { dia: 18, a: 4, t: 'Phishing', tr: 25, i: 6 },
-      { dia: 19, a: 8, t: 'Malware', tr: 52, i: 5 }, { dia: 20, a: 4, t: 'Malware', tr: 29, i: 6 },
-      { dia: 21, a: 10, t: 'DDoS', tr: 39, i: 6 }, { dia: 22, a: 8, t: 'Phishing', tr: 42, i: 4 },
-      { dia: 23, a: 7, t: 'Malware', tr: 46, i: 3 }, { dia: 24, a: 8, t: 'DDoS', tr: 50, i: 5 },
-      { dia: 25, a: 6, t: 'Phishing', tr: 26, i: 5 }, { dia: 26, a: 5, t: 'Phishing', tr: 44, i: 8 },
-      { dia: 27, a: 8, t: 'DDoS', tr: 45, i: 9 }, { dia: 28, a: 7, t: 'Phishing', tr: 32, i: 3 },
-      { dia: 29, a: 10, t: 'Malware', tr: 45, i: 9 }, { dia: 30, a: 7, t: 'Phishing', tr: 39, i: 9 }
+      { dia: 1,  a: 7,  t: 'Malware',  tr: 49, i: 7 },
+      { dia: 2,  a: 4,  t: 'Phishing', tr: 32, i: 8 },
+      { dia: 3,  a: 10, t: 'DDoS',     tr: 28, i: 4 },
+      { dia: 4,  a: 7,  t: 'Malware',  tr: 53, i: 6 },
+      { dia: 5,  a: 7,  t: 'Phishing', tr: 53, i: 4 },
+      { dia: 6,  a: 6,  t: 'DDoS',     tr: 47, i: 3 },
+      { dia: 7,  a: 5,  t: 'Phishing', tr: 50, i: 5 },
+      { dia: 8,  a: 9,  t: 'Malware',  tr: 38, i: 6 },
+      { dia: 9,  a: 10, t: 'Malware',  tr: 49, i: 9 },
+      { dia: 10, a: 9,  t: 'DDoS',     tr: 47, i: 5 },
+      { dia: 11, a: 7,  t: 'Phishing', tr: 34, i: 3 },
+      { dia: 12, a: 4,  t: 'Phishing', tr: 52, i: 4 },
+      { dia: 13, a: 4,  t: 'Malware',  tr: 29, i: 8 },
+      { dia: 14, a: 6,  t: 'DDoS',     tr: 44, i: 9 },
+      { dia: 15, a: 8,  t: 'Malware',  tr: 27, i: 6 },
+      { dia: 16, a: 7,  t: 'Phishing', tr: 45, i: 9 },
+      { dia: 17, a: 10, t: 'Malware',  tr: 46, i: 9 },
+      { dia: 18, a: 4,  t: 'Phishing', tr: 25, i: 6 },
+      { dia: 19, a: 8,  t: 'Malware',  tr: 52, i: 5 },
+      { dia: 20, a: 4,  t: 'Malware',  tr: 29, i: 6 },
+      { dia: 21, a: 10, t: 'DDoS',     tr: 39, i: 6 },
+      { dia: 22, a: 8,  t: 'Phishing', tr: 42, i: 4 },
+      { dia: 23, a: 7,  t: 'Malware',  tr: 46, i: 3 },
+      { dia: 24, a: 8,  t: 'DDoS',     tr: 50, i: 5 },
+      { dia: 25, a: 6,  t: 'Phishing', tr: 26, i: 5 },
+      { dia: 26, a: 5,  t: 'Phishing', tr: 44, i: 8 },
+      { dia: 27, a: 8,  t: 'DDoS',     tr: 45, i: 9 },
+      { dia: 28, a: 7,  t: 'Phishing', tr: 32, i: 3 },
+      { dia: 29, a: 10, t: 'Malware',  tr: 45, i: 9 },
+      { dia: 30, a: 7,  t: 'Phishing', tr: 39, i: 9 }
     ];
 
     const defaultColMeta = [
@@ -1039,13 +1054,23 @@
     }
     function filtrouSelecionado() { return filtroTipo.value !== '' && filtroImpacto.value !== '' }
     function stats(arr) {
-      const v = arr.map(d => d.a).sort((a, b) => a - b), n = v.length || 1;
+      const v = arr.map(d => d.a).filter(x => !isNaN(x)).sort((a, b) => a - b);
+      const n = v.length;
+      if (n === 0) return { m: 0, med: 0, p10: 0, p90: 0, sd: 0, cv: 0 };
       const m = v.reduce((a, b) => a + b, 0) / n;
-      return {
-        m, med: v[Math.floor(n / 2)], p10: v[Math.floor(n * 0.1)] || 0, p90: v[Math.floor(n * 0.9)] || 0,
-        sd: Math.sqrt(v.reduce((s, x) => s + (x - m) ** 2, 0) / n),
-        cv: m === 0 ? 0 : (Math.sqrt(v.reduce((s, x) => s + (x - m) ** 2, 0) / n) / m) * 100
-      };
+      const med = n % 2 === 0 ? (v[n / 2 - 1] + v[n / 2]) / 2 : v[Math.floor(n / 2)];
+      function percentile(p) {
+        const pos = (n - 1) * p;
+        const base = Math.floor(pos);
+        const rest = pos - base;
+        return v[base + 1] !== undefined ? v[base] + rest * (v[base + 1] - v[base]) : v[base];
+      }
+      const p10 = percentile(0.10);
+      const p90 = percentile(0.90);
+      const variance = v.reduce((s, x) => s + (x - m) ** 2, 0) / n;
+      const sd = Math.sqrt(variance);
+      const cv = m === 0 ? 0 : (sd / m) * 100;
+      return { m, med, p10, p90, sd, cv };
     }
 
     const pieColors = ['#ef4444', '#991b1b', '#450a0a', '#111827', '#1f2937', '#b91c1c'];
@@ -1086,14 +1111,12 @@
       const animOpt = { duration: 700, easing: 'easeOutQuart' };
       const baseOpt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, animation: animOpt };
 
-      // Gráfico 1: Linha
       charts.l = new Chart(linha, {
         type: 'line',
         data: { labels, datasets: [{ data: valores, borderColor: '#ef4444', tension: 0.3, borderWidth: 2, fill: true, backgroundColor: 'rgba(239,68,68,0.06)' }] },
         options: baseOpt
       });
 
-      // Gráfico 2: ROSCA (doughnut)
       const tipos = [...new Set(f.map(d => d.t))];
       const pieData = tipos.map(t => f.filter(d => d.t === t).length);
       const total = pieData.reduce((a, b) => a + b, 0);
@@ -1111,10 +1134,7 @@
           }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: animOpt,
-          cutout: '62%',
+          responsive: true, maintainAspectRatio: false, animation: animOpt, cutout: '62%',
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -1129,7 +1149,6 @@
         }
       });
 
-      // Legenda customizada do gráfico de rosca
       const barrasCard = barras.closest('.chart-card');
       const existingLeg = barrasCard.querySelector('.pie-legend');
       if (existingLeg) existingLeg.remove();
@@ -1145,7 +1164,6 @@
       legDiv.innerHTML = pieLegendHTML;
       barrasCard.appendChild(legDiv.firstElementChild);
 
-      // Gráfico 3: Histograma de impacto
       const bins = [
         { label: '1', min: 1, max: 1, color: '#22c55e' }, { label: '2', min: 2, max: 2, color: '#22c55e' }, { label: '3', min: 3, max: 3, color: '#22c55e' },
         { label: '4', min: 4, max: 4, color: '#eab308' }, { label: '5', min: 5, max: 5, color: '#eab308' }, { label: '6', min: 6, max: 6, color: '#eab308' },
@@ -1172,7 +1190,6 @@
         }
       });
 
-      // Top 5
       const top = [...f].sort((a, b) => b.a - a.a).slice(0, 5);
       let tHTML = `<tr><th>Dia</th><th>Ataques</th><th>Tipo</th><th>Tempo Resp.</th><th>Impacto</th></tr>`;
       top.forEach(d => {
@@ -1209,13 +1226,33 @@
     filtroImpacto.onchange = render;
     render();
 
-    function exportCSV() {
-      let csv = 'Dia,Ataques,Tipo,TempoResposta,Impacto\n';
-      data.forEach(d => csv += `${d.dia},${d.a},${d.t},${d.tr},${d.i}\n`);
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([csv]));
-      a.download = 'dados_cyber.csv'; a.click();
+    // ─── EXPORTAR XLSX ────────────────────────────────────────────────────────
+    function exportXLSX() {
+      const rows = data.map(d => ({
+        Dia: d.dia,
+        Ataques: d.a,
+        Tipo: d.t,
+        TempoResposta: d.tr,
+        Impacto: d.i
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+
+      // Larguras de coluna
+      ws['!cols'] = [
+        { wch: 6 },   // Dia
+        { wch: 10 },  // Ataques
+        { wch: 12 },  // Tipo
+        { wch: 16 },  // TempoResposta
+        { wch: 10 }   // Impacto
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Dados Cyber');
+
+      XLSX.writeFile(wb, 'dados_cyber.xlsx');
     }
+    // ─────────────────────────────────────────────────────────────────────────
 
     document.getElementById('nav-home').classList.add('nav-active');
   </script>

@@ -28,7 +28,9 @@
     .container {
       width: 94%;
       margin: 20px auto;
-      padding-bottom: 40px
+      padding-bottom: 40px;
+      position: relative;
+      z-index: 10;
     }
 
     .navbar {
@@ -38,7 +40,9 @@
       padding: 14px 24px;
       background: #020617;
       border-bottom: 1px solid #1f2937;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 100;
     }
 
     .navbar-brand {
@@ -762,6 +766,7 @@
         margin: 1cm;
       }
     }
+
   </style>
 </head>
 
@@ -1354,6 +1359,117 @@
     // ─────────────────────────────────────────────────────────────────────────
 
     document.getElementById('nav-home').classList.add('nav-active');
+
+    // --- EFEITO MATRIX RAIN (CANVAS) ---
+    (function initMatrixRain() {
+      // Cria e injeta o canvas dinamicamente sem afetar o HTML existente
+      const canvas = document.createElement('canvas');
+      canvas.id = 'matrix-canvas';
+      Object.assign(canvas.style, {
+        position: 'fixed',
+        inset: '0',
+        pointerEvents: 'none',
+        zIndex: '0',
+        opacity: '0',
+        transition: 'opacity 0.6s ease'
+      });
+      // Garante que o container do dashboard fique acima do canvas
+      const container = document.querySelector('.container');
+      if (container) {
+        container.style.position = 'relative';
+        container.style.zIndex = '1';
+      }
+      document.body.insertBefore(canvas, document.body.firstChild);
+
+      const ctx = canvas.getContext('2d', { alpha: true });
+      let width, height;
+      let columns, drops = [], speeds = [], brightness = [];
+      const fontSize = 18;
+
+      // Adaptação ao resize da tela
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        columns = Math.floor(width / fontSize);
+        const oldDrops = drops || [];
+        drops = [];
+        speeds = [];
+        brightness = [];
+        for (let i = 0; i < columns; i++) {
+          drops[i] = oldDrops[i] !== undefined ? oldDrops[i] : (Math.random() * -100);
+          speeds[i] = Math.random() * 0.6 + 0.4;     // Varia a velocidade pra cada coluna
+          brightness[i] = Math.random() * 0.25 + 0.2; // Opacidade calibrada (0.2 a 0.45)
+        }
+      }
+      
+      window.addEventListener('resize', resize);
+      resize();
+
+      let scrollBoost = 1;
+      let lastScroll = window.scrollY || 0;
+      // Parallax / Interação com scroll
+      window.addEventListener('scroll', () => {
+        const delta = Math.abs(window.scrollY - lastScroll);
+        if (delta > 0) {
+          scrollBoost = Math.min(scrollBoost + delta * 0.05, 4.0); 
+        }
+        lastScroll = window.scrollY;
+      });
+
+      function draw() {
+        requestAnimationFrame(draw);
+        
+        const dashboard = document.getElementById('dashboard');
+        const isActive = dashboard && dashboard.classList.contains('active');
+        
+        // Pausa performance quando sai da aba
+        if (!isActive) {
+          if (canvas.style.opacity !== '0') canvas.style.opacity = '0';
+          return; 
+        } else {
+          if (canvas.style.opacity !== '1') canvas.style.opacity = '1';
+        }
+
+        // --- FADE TRAIL OTIMIZADO ---
+        // Exclui opacidade existente reduzindo o rastro ao invés de pintar de preto
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.fillRect(0, 0, width, height);
+
+        // Volta o contexto pra pintura das letras
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.font = `bold ${fontSize}px monospace`;
+        
+        // Glow vibrante
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = 'rgba(255, 0, 0, 0.8)';
+        
+        if (scrollBoost > 1) scrollBoost -= 0.06;
+        else scrollBoost = 1;
+
+        // Renderiza colunas
+        for (let i = 0; i < columns; i++) {
+          const char = Math.random() > 0.5 ? '1' : '0';
+          
+          ctx.fillStyle = `rgba(255, 45, 45, ${brightness[i]})`; 
+          
+          const y = drops[i] * fontSize;
+          ctx.fillText(char, i * fontSize, y);
+          
+          // Loop contínuo
+          if (y > height && Math.random() > 0.98) {
+            drops[i] = 0;
+            // Redefine velocidade e brilho da coluna pro proximo loop
+            speeds[i] = Math.random() * 0.6 + 0.4;
+            brightness[i] = Math.random() * 0.25 + 0.2;
+          }
+          
+          drops[i] += speeds[i] * scrollBoost;
+        }
+      }
+      
+      draw();
+    })();
   </script>
 </body>
 
